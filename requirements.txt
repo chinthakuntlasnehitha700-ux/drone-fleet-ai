@@ -1,0 +1,7 @@
+streamlit==1.66.1
+fastapi
+uvicorn[standard]
+pymongo
+python-dotenv
+requests
+pandas
