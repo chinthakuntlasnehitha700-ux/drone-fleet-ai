@@ -1,4 +1,6 @@
 import streamlit as st
+import requests
+import pandas as pd
 
 st.set_page_config(
     page_title="DroneFleet AI",
@@ -6,20 +8,39 @@ st.set_page_config(
     layout="wide"
 )
 
+API_URL = "http://127.0.0.1:8000/api/drones"
+
 st.title("🚁 DroneFleet AI")
 st.subheader("AI-Assisted Drone Fleet Management Platform")
 
-st.write("Welcome to your Drone Fleet Control Center")
+try:
+    response = requests.get(API_URL, timeout=10)
+    response.raise_for_status()
 
-col1, col2, col3, col4 = st.columns(4)
+    data = response.json()
+    drones = data["drones"]
 
-col1.metric("Total Drones", "12")
-col2.metric("Active Drones", "8")
-col3.metric("Active Missions", "5")
-col4.metric("Fleet Health", "92%")
+    total = len(drones)
+    active = sum(1 for d in drones if d["status"] == "Online")
+    charging = sum(1 for d in drones if d["status"] == "Charging")
+    maintenance = sum(
+        1 for d in drones if d["status"] == "Maintenance"
+    )
 
-st.divider()
+    col1, col2, col3, col4 = st.columns(4)
 
-st.subheader("Fleet Overview")
+    col1.metric("Total Drones", total)
+    col2.metric("Active Drones", active)
+    col3.metric("Charging", charging)
+    col4.metric("Maintenance", maintenance)
 
-st.info("Your DroneFleet AI dashboard is ready for development.")
+    st.divider()
+
+    st.subheader("Drone Fleet Details")
+
+    df = pd.DataFrame(drones)
+    st.dataframe(df, width="stretch")
+
+except requests.exceptions.RequestException as error:
+    st.error("Backend connection failed.")
+    st.write(error)
