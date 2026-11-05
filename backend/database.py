@@ -1,10 +1,18 @@
+
+import os
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
-MONGO_URL = "mongodb://127.0.0.1:27017/"
+load_dotenv()
+
+MONGO_URL = os.getenv("MONGO_URL")
+
+if not MONGO_URL:
+    raise ValueError("MONGO_URL is missing. Check your .env file.")
 
 client = MongoClient(
     MONGO_URL,
-    serverSelectionTimeoutMS=5000
+    serverSelectionTimeoutMS=10000
 )
 
 db = client["dronefleet_ai"]
@@ -21,4 +29,3 @@ def check_database_connection():
     except Exception as error:
         print("Database connection failed:", error)
         return False
-        

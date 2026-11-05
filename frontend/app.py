@@ -8,7 +8,7 @@ st.set_page_config(
     layout="wide"
 )
 
-API_URL = "http://127.0.0.1:8000/api/drones"
+API_URL = "http://127.0.0.1:8001/api/drones"
 
 st.title("🚁 DroneFleet AI")
 st.subheader("AI-Assisted Drone Fleet Management Platform")
