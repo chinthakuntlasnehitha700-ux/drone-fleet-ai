@@ -123,10 +123,10 @@ function App() {
           missionsResponse,
           alertsResponse,
         ] = await Promise.all([
-          fetch("http://127.0.0.1:8000/api/health"),
-          fetch("http://127.0.0.1:8000/api/drones"),
-          fetch("http://127.0.0.1:8000/api/missions"),
-          fetch("http://127.0.0.1:8000/api/alerts"),
+         fetch("https://drone-fleet-ai.onrender.com/api/health"),
+         fetch("https://drone-fleet-ai.onrender.com/api/drones"),
+         fetch("https://drone-fleet-ai.onrender.com/api/missions"),
+         fetch("https://drone-fleet-ai.onrender.com/api/alerts"), 
         ]);
 
         if (
