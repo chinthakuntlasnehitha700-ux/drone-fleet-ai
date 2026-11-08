@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import (
+from backend.database import (
     drones_collection,
     missions_collection,
     alerts_collection
