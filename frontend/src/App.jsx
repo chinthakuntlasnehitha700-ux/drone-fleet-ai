@@ -1,5 +1,8 @@
+
 import { useEffect, useState } from "react";
 import "./App.css";
+
+const API = "https://drone-fleet-ai-api.onrender.com/api";
 
 const menuItems = [
   { name: "Dashboard", icon: "▦" },
@@ -15,96 +18,35 @@ const menuItems = [
 ];
 
 const drones = [
-  {
-    id: "DR-001",
-    model: "DJI Matrice 350",
-    zone: "Zone A",
-    battery: 92,
-    status: "Online",
-    mission: "Delivery",
-  },
-  {
-    id: "DR-002",
-    model: "DJI Matrice 350",
-    zone: "Zone B",
-    battery: 84,
-    status: "Online",
-    mission: "Survey",
-  },
-  {
-    id: "DR-003",
-    model: "DJI Matrice 300",
-    zone: "Zone C",
-    battery: 76,
-    status: "Online",
-    mission: "Inspection",
-  },
-  {
-    id: "DR-004",
-    model: "DJI Mavic 3",
-    zone: "Zone A",
-    battery: 65,
-    status: "Online",
-    mission: "Mapping",
-  },
-  {
-    id: "DR-005",
-    model: "DJI Matrice 350",
-    zone: "Zone D",
-    battery: 58,
-    status: "Maintenance",
-    mission: "None",
-  },
-  {
-    id: "DR-006",
-    model: "DJI Matrice 350",
-    zone: "Zone B",
-    battery: 45,
-    status: "Online",
-    mission: "Survey",
-  },
+  { id: "DR-001", model: "DJI Matrice 350", zone: "Zone A", battery: 92, status: "Online", mission: "Delivery" },
+  { id: "DR-002", model: "DJI Matrice 350", zone: "Zone B", battery: 84, status: "Online", mission: "Survey" },
+  { id: "DR-003", model: "DJI Matrice 300", zone: "Zone C", battery: 76, status: "Online", mission: "Inspection" },
+  { id: "DR-004", model: "DJI Mavic 3", zone: "Zone A", battery: 65, status: "Online", mission: "Mapping" },
+  { id: "DR-005", model: "DJI Matrice 350", zone: "Zone D", battery: 58, status: "Maintenance", mission: "None" },
+  { id: "DR-006", model: "DJI Matrice 350", zone: "Zone B", battery: 45, status: "Online", mission: "Survey" },
 ];
 
 const missions = [
-  {
-    id: "MS-001",
-    name: "Zone A Delivery",
-    drone: "DR-001",
-    progress: 78,
-    status: "In Progress",
-  },
-  {
-    id: "MS-002",
-    name: "Zone B Survey",
-    drone: "DR-002",
-    progress: 56,
-    status: "In Progress",
-  },
-  {
-    id: "MS-003",
-    name: "Building Inspection",
-    drone: "DR-003",
-    progress: 32,
-    status: "In Progress",
-  },
-  {
-    id: "MS-004",
-    name: "Area Mapping",
-    drone: "DR-004",
-    progress: 91,
-    status: "Almost Complete",
-  },
-  {
-    id: "MS-005",
-    name: "Emergency Survey",
-    drone: "DR-006",
-    progress: 20,
-    status: "Started",
-  },
+  { id: "MS-001", name: "Zone A Delivery", drone: "DR-001", progress: 78, status: "In Progress" },
+  { id: "MS-002", name: "Zone B Survey", drone: "DR-002", progress: 56, status: "In Progress" },
+  { id: "MS-003", name: "Building Inspection", drone: "DR-003", progress: 32, status: "In Progress" },
+  { id: "MS-004", name: "Area Mapping", drone: "DR-004", progress: 91, status: "Almost Complete" },
+  { id: "MS-005", name: "Emergency Survey", drone: "DR-006", progress: 20, status: "Started" },
 ];
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const [authName, setAuthName] = useState("");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authMessage, setAuthMessage] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState(null);
+
   const [activePage, setActivePage] = useState("Dashboard");
   const [darkMode, setDarkMode] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
@@ -123,10 +65,10 @@ function App() {
           missionsResponse,
           alertsResponse,
         ] = await Promise.all([
-         fetch("https://drone-fleet-ai.onrender.com/api/health"),
-         fetch("https://drone-fleet-ai.onrender.com/api/drones"),
-         fetch("https://drone-fleet-ai.onrender.com/api/missions"),
-         fetch("https://drone-fleet-ai.onrender.com/api/alerts"), 
+          fetch(`${API}/health`),
+          fetch(`${API}/drones`),
+          fetch(`${API}/missions`),
+          fetch(`${API}/alerts`),
         ]);
 
         if (
@@ -146,14 +88,14 @@ function App() {
         setDroneData(
           droneResults.map((drone) => ({
             ...drone,
-            mission: "None",
+            mission: drone.mission || "None",
           }))
         );
 
         setMissionData(
           missionResults.map((mission) => ({
             ...mission,
-            drone: "Unassigned",
+            drone: mission.drone || "Unassigned",
           }))
         );
 
@@ -171,11 +113,78 @@ function App() {
     loadBackendData();
   }, []);
 
-  const handleLogin = (event) => {
+  // CREATE ACCOUNT AND SIGN IN
+  const handleAuth = async (event) => {
     event.preventDefault();
-    setIsLoggedIn(true);
+
+    setAuthError("");
+    setAuthMessage("");
+    setAuthLoading(true);
+
+    try {
+      const endpoint = isRegistering ? "register" : "login";
+
+      const body = isRegistering
+        ? {
+            name: authName.trim(),
+            email: authEmail.trim(),
+            password: authPassword,
+          }
+        : {
+            email: authEmail.trim(),
+            password: authPassword,
+          };
+
+      const response = await fetch(`${API}/${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.detail || "Something went wrong. Please try again."
+        );
+      }
+
+      if (isRegistering) {
+        setIsRegistering(false);
+        setAuthName("");
+        setAuthPassword("");
+        setAuthMessage(
+          "Account created successfully! Please sign in."
+        );
+      } else {
+        setCurrentUser(result.user);
+        setIsLoggedIn(true);
+        setActivePage("Dashboard");
+        setAuthPassword("");
+        setAuthError("");
+        setAuthMessage("");
+      }
+    } catch (error) {
+      setAuthError(
+        error.message || "Unable to connect to the server."
+      );
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    setAuthPassword("");
+    setAuthError("");
+    setAuthMessage("");
+    setIsRegistering(false);
+  };
+
+  // LOGIN / CREATE ACCOUNT PAGE
   if (!isLoggedIn) {
     return (
       <>
@@ -198,15 +207,39 @@ function App() {
             </p>
 
             <div className="login-heading">
-              <h2>Welcome back</h2>
-              <p>Sign in to access your fleet control center</p>
+              <h2>
+                {isRegistering ? "Create Account" : "Welcome back"}
+              </h2>
+
+              <p>
+                {isRegistering
+                  ? "Create your account to access your fleet control center"
+                  : "Sign in to access your fleet control center"}
+              </p>
             </div>
 
-            <form onSubmit={handleLogin}>
+            <form onSubmit={handleAuth}>
+              {isRegistering && (
+                <>
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={authName}
+                    onChange={(e) => setAuthName(e.target.value)}
+                    minLength={2}
+                    maxLength={60}
+                    required
+                  />
+                </>
+              )}
+
               <label>Email Address</label>
               <input
                 type="email"
-                placeholder="admin@example.com"
+                placeholder="Enter your email"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
                 required
               />
 
@@ -214,13 +247,56 @@ function App() {
               <input
                 type="password"
                 placeholder="Enter your password"
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                minLength={8}
+                maxLength={128}
                 required
               />
 
-              <button className="primary-button" type="submit">
-                Sign In
+              {authError && (
+                <p style={{ color: "#dc2626", fontSize: "14px" }}>
+                  {authError}
+                </p>
+              )}
+
+              {authMessage && (
+                <p style={{ color: "#15803d", fontSize: "14px" }}>
+                  {authMessage}
+                </p>
+              )}
+
+              <button
+                className="primary-button"
+                type="submit"
+                disabled={authLoading}
+              >
+                {authLoading
+                  ? "Please wait..."
+                  : isRegistering
+                  ? "Create Account"
+                  : "Sign In"}
               </button>
             </form>
+
+            <p style={{ textAlign: "center", marginTop: "18px" }}>
+              {isRegistering
+                ? "Already have an account?"
+                : "Don't have an account?"}{" "}
+
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setAuthError("");
+                  setAuthMessage("");
+                  setAuthPassword("");
+                }}
+              >
+                {isRegistering ? "Sign In" : "Create Account"}
+              </button>
+            </p>
 
             <p className="secure-text">
               🔒 Secure fleet management system
@@ -374,7 +450,6 @@ function App() {
                     style={{ width: `${mission.progress}%` }}
                   ></div>
                 </div>
-
                 <span>{mission.progress}%</span>
               </div>
 
@@ -418,37 +493,24 @@ function App() {
           <tbody>
             {droneData.map((drone) => (
               <tr key={drone.id}>
-                <td>
-                  <strong>{drone.id}</strong>
-                </td>
-
+                <td><strong>{drone.id}</strong></td>
                 <td>{drone.model}</td>
                 <td>{drone.zone}</td>
-
                 <td>
                   <div className="battery-cell">
                     <div className="mini-progress">
-                      <div
-                        style={{ width: `${drone.battery}%` }}
-                      ></div>
+                      <div style={{ width: `${drone.battery}%` }}></div>
                     </div>
-
                     <span>{drone.battery}%</span>
                   </div>
                 </td>
-
                 <td>
-                  <span
-                    className={`status-badge ${
-                      drone.status === "Online"
-                        ? "green-badge"
-                        : "orange-badge"
-                    }`}
-                  >
+                  <span className={`status-badge ${
+                    drone.status === "Online" ? "green-badge" : "orange-badge"
+                  }`}>
                     {drone.status}
                   </span>
                 </td>
-
                 <td>{drone.mission}</td>
               </tr>
             ))}
@@ -466,18 +528,15 @@ function App() {
           <h1>Live Map</h1>
           <p>Monitor drone locations and fleet activity.</p>
         </div>
-
         <span className="live-badge">● LIVE TRACKING</span>
       </div>
 
       <div className="map-container">
         <div className="map-grid"></div>
-
         <div className="map-label label-one">Zone A</div>
         <div className="map-label label-two">Zone B</div>
         <div className="map-label label-three">Zone C</div>
         <div className="map-label label-four">Zone D</div>
-
         <div className="drone-marker marker-one">🚁</div>
         <div className="drone-marker marker-two">🚁</div>
         <div className="drone-marker marker-three">🚁</div>
@@ -498,7 +557,6 @@ function App() {
           <h1>Missions</h1>
           <p>Create, monitor and manage drone missions.</p>
         </div>
-
         <button className="primary-button small-button">
           + Create Mission
         </button>
@@ -509,14 +567,12 @@ function App() {
           <div className="mission-card" key={mission.id}>
             <div className="mission-top">
               <span className="mission-id">{mission.id}</span>
-
               <span className="status-badge blue-badge">
                 {mission.status}
               </span>
             </div>
 
             <h3>{mission.name}</h3>
-
             <p>Assigned Drone: {mission.drone}</p>
 
             <div className="mission-progress">
@@ -558,27 +614,17 @@ function App() {
 
             <div className="large-battery">
               <div
-                className={
-                  drone.battery < 50
-                    ? "battery-fill low"
-                    : "battery-fill"
-                }
+                className={drone.battery < 50 ? "battery-fill low" : "battery-fill"}
                 style={{ width: `${drone.battery}%` }}
               ></div>
             </div>
 
             <p>{drone.model}</p>
 
-            <span
-              className={`status-badge ${
-                drone.battery < 50
-                  ? "orange-badge"
-                  : "green-badge"
-              }`}
-            >
-              {drone.battery < 50
-                ? "Attention Required"
-                : "Healthy"}
+            <span className={`status-badge ${
+              drone.battery < 50 ? "orange-badge" : "green-badge"
+            }`}>
+              {drone.battery < 50 ? "Attention Required" : "Healthy"}
             </span>
           </div>
         ))}
@@ -594,10 +640,7 @@ function App() {
           <h1>Docking Stations</h1>
           <p>Monitor charging and docking station availability.</p>
         </div>
-
-        <button className="primary-button small-button">
-          + Add Station
-        </button>
+        <button className="primary-button small-button">+ Add Station</button>
       </div>
 
       <div className="stats-grid">
@@ -630,27 +673,18 @@ function App() {
       </div>
 
       <div className="station-grid">
-        {["DS-001", "DS-002", "DS-003", "DS-004"].map(
-          (station, index) => (
-            <div className="station-card" key={station}>
-              <div className="station-icon">⌂</div>
-
-              <h3>{station}</h3>
-
-              <p>Zone {String.fromCharCode(65 + index)}</p>
-
-              <span
-                className={`status-badge ${
-                  index === 1
-                    ? "orange-badge"
-                    : "green-badge"
-                }`}
-              >
-                {index === 1 ? "Charging" : "Available"}
-              </span>
-            </div>
-          )
-        )}
+        {["DS-001", "DS-002", "DS-003", "DS-004"].map((station, index) => (
+          <div className="station-card" key={station}>
+            <div className="station-icon">⌂</div>
+            <h3>{station}</h3>
+            <p>Zone {String.fromCharCode(65 + index)}</p>
+            <span className={`status-badge ${
+              index === 1 ? "orange-badge" : "green-badge"
+            }`}>
+              {index === 1 ? "Charging" : "Available"}
+            </span>
+          </div>
+        ))}
       </div>
     </>
   );
@@ -663,7 +697,6 @@ function App() {
           <h1>AI Predictions</h1>
           <p>AI-assisted insights for smarter fleet operations.</p>
         </div>
-
         <span className="ai-badge">✦ AI ACTIVE</span>
       </div>
 
@@ -672,9 +705,7 @@ function App() {
           <div className="prediction-icon">🔋</div>
           <h3>Battery Prediction</h3>
           <strong>87%</strong>
-          <p>
-            Predicted battery efficiency across active drones.
-          </p>
+          <p>Predicted battery efficiency across active drones.</p>
         </div>
 
         <div className="prediction-card">
@@ -688,18 +719,14 @@ function App() {
           <div className="prediction-icon">🎯</div>
           <h3>Mission Success</h3>
           <strong>94%</strong>
-          <p>
-            Predicted success rate for active missions.
-          </p>
+          <p>Predicted success rate for active missions.</p>
         </div>
 
         <div className="prediction-card">
           <div className="prediction-icon">⚡</div>
           <h3>Energy Forecast</h3>
           <strong>12.4 kWh</strong>
-          <p>
-            Estimated energy requirement for upcoming missions.
-          </p>
+          <p>Estimated energy requirement for upcoming missions.</p>
         </div>
       </div>
 
@@ -713,32 +740,23 @@ function App() {
 
         <div className="recommendation">
           <span>01</span>
-
           <div>
             <strong>Recharge DR-006</strong>
-
-            <p>
-              Battery level is below the recommended operational threshold.
-            </p>
+            <p>Battery level is below the recommended operational threshold.</p>
           </div>
         </div>
 
         <div className="recommendation">
           <span>02</span>
-
           <div>
             <strong>Schedule Preventive Maintenance</strong>
-
-            <p>
-              DR-005 is recommended for maintenance before the next mission.
-            </p>
+            <p>DR-005 is recommended for maintenance before the next mission.</p>
           </div>
         </div>
       </div>
     </>
   );
 
-  // BACKEND CONNECTED ALERTS
   const renderAlerts = () => (
     <>
       <div className="page-heading">
@@ -756,19 +774,14 @@ function App() {
           alertData.map((alert) => (
             <div
               className={`alert-card ${
-                alert.severity === "Critical"
-                  ? "danger"
-                  : "warning"
+                alert.severity === "Critical" ? "danger" : "warning"
               }`}
               key={alert.id}
             >
               <div className="alert-icon">!</div>
-
               <div>
                 <h3>{alert.severity}</h3>
-
                 <p>{alert.message}</p>
-
                 <small>Alert ID: {alert.id}</small>
               </div>
             </div>
@@ -786,10 +799,7 @@ function App() {
           <h1>Reports</h1>
           <p>View fleet performance and operational analytics.</p>
         </div>
-
-        <button className="primary-button small-button">
-          Export Report
-        </button>
+        <button className="primary-button small-button">Export Report</button>
       </div>
 
       <div className="stats-grid">
@@ -840,18 +850,12 @@ function App() {
 
         <div className="chart-placeholder">
           <div className="chart-bars">
-            {[55, 72, 48, 82, 65, 92, 76, 88, 70, 96, 84, 90].map(
-              (height, index) => (
-                <div className="chart-column" key={index}>
-                  <div
-                    className="chart-bar"
-                    style={{ height: `${height}%` }}
-                  ></div>
-
-                  <small>{index + 1}</small>
-                </div>
-              )
-            )}
+            {[55, 72, 48, 82, 65, 92, 76, 88, 70, 96, 84, 90].map((height, index) => (
+              <div className="chart-column" key={index}>
+                <div className="chart-bar" style={{ height: `${height}%` }}></div>
+                <small>{index + 1}</small>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -877,8 +881,15 @@ function App() {
               <strong>Administrator Name</strong>
               <p>Manage the current administrator profile.</p>
             </div>
+            <input value={currentUser?.name || "User"} readOnly />
+          </div>
 
-            <input value="Admin" readOnly />
+          <div className="setting-row">
+            <div>
+              <strong>Account Email</strong>
+              <p>Email address used to sign in.</p>
+            </div>
+            <input value={currentUser?.email || ""} readOnly />
           </div>
 
           <div className="setting-row">
@@ -886,7 +897,6 @@ function App() {
               <strong>Email Notifications</strong>
               <p>Receive important fleet alerts by email.</p>
             </div>
-
             <button className="toggle active-toggle">
               <span></span>
             </button>
@@ -901,11 +911,8 @@ function App() {
               <strong>Dark Mode</strong>
               <p>Switch the dashboard appearance.</p>
             </div>
-
             <button
-              className={`toggle ${
-                darkMode ? "active-toggle" : ""
-              }`}
+              className={`toggle ${darkMode ? "active-toggle" : ""}`}
               onClick={() => setDarkMode(!darkMode)}
             >
               <span></span>
@@ -921,14 +928,9 @@ function App() {
               <strong>API Status</strong>
               <p>Backend REST API connection status.</p>
             </div>
-
-            <span
-              className={`status-badge ${
-                apiStatus === "Connected"
-                  ? "green-badge"
-                  : "orange-badge"
-              }`}
-            >
+            <span className={`status-badge ${
+              apiStatus === "Connected" ? "green-badge" : "orange-badge"
+            }`}>
               {apiStatus}
             </span>
           </div>
@@ -941,31 +943,22 @@ function App() {
     switch (activePage) {
       case "Drones":
         return renderDrones();
-
       case "Live Map":
         return renderMap();
-
       case "Missions":
         return renderMissions();
-
       case "Battery":
         return renderBattery();
-
       case "Docking Stations":
         return renderDocking();
-
       case "AI Predictions":
         return renderAI();
-
       case "Alerts":
         return renderAlerts();
-
       case "Reports":
         return renderReports();
-
       case "Settings":
         return renderSettings();
-
       default:
         return renderDashboard();
     }
@@ -976,7 +969,6 @@ function App() {
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-logo">🚁</div>
-
           <div>
             <strong>DroneFleet</strong>
             <span>AI Platform</span>
@@ -1003,17 +995,13 @@ function App() {
         <div className="sidebar-bottom">
           <div className="security-card">
             <span>🔒</span>
-
             <div>
               <strong>System Secure</strong>
               <small>All systems operational</small>
             </div>
           </div>
 
-          <button
-            className="logout-button"
-            onClick={() => setIsLoggedIn(false)}
-          >
+          <button className="logout-button" onClick={handleLogout}>
             ⇥ Logout
           </button>
         </div>
@@ -1028,9 +1016,8 @@ function App() {
                 : new Date().getHours() < 18
                 ? "Good afternoon"
                 : "Good evening"}
-              , Admin
+              , {currentUser?.name || "User"}
             </p>
-
             <h2>{activePage}</h2>
           </div>
 
@@ -1047,10 +1034,11 @@ function App() {
             </button>
 
             <div className="profile">
-              <div className="avatar">A</div>
-
+              <div className="avatar">
+                {(currentUser?.name || "U").charAt(0).toUpperCase()}
+              </div>
               <div>
-                <strong>Admin</strong>
+                <strong>{currentUser?.name || "User"}</strong>
                 <small>Fleet Manager</small>
               </div>
             </div>
@@ -1069,9 +1057,7 @@ function App() {
 
         <footer className="footer">
           <span>© 2026 DroneFleet AI</span>
-          <span>
-            AI-Assisted Drone Fleet Management Platform
-          </span>
+          <span>AI-Assisted Drone Fleet Management Platform</span>
         </footer>
       </main>
     </div>
