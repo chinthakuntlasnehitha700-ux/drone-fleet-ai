@@ -13,6 +13,7 @@ db = client["DroneFleetAI"]
 drones_collection = db["drones"]
 missions_collection = db["missions"]
 alerts_collection = db["alerts"]
+users_collection = db["users"]
 
 try:
     client.admin.command("ping")
