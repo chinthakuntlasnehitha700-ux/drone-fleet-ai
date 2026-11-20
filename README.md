@@ -3,24 +3,11 @@
 
 ### AI-Assisted Drone Fleet Management Platform
 
-A centralized web-based platform designed to manage drone operations, monitor drone status, organize missions, track battery levels, and provide intelligent fleet insights.
+## Project Overview
 
----
+The Drone Fleet Management Platform is a web-based application designed to manage and monitor drone fleet operations through a centralized dashboard. It provides features for drone management, mission tracking, battery monitoring, docking station management, alerts and AI-assisted predictions.
 
-## 📌 Project Overview
-
-The Drone Fleet Management Platform is developed to simplify and improve drone fleet operations through a centralized dashboard. It helps users monitor drones, manage missions, track battery status, monitor docking stations, and view AI-based predictions and alerts.
-
-## 🎯 Project Objectives
-
-- Centralized drone fleet monitoring.
-- Efficient mission management.
-- Battery and drone health monitoring.
-- Docking station management.
-- AI-assisted predictions and alerts.
-- Easy access to fleet information through a dashboard.
-
-## ✨ Key Features
+## Key Features
 
 - Dashboard
 - Drone Management
@@ -33,59 +20,53 @@ The Drone Fleet Management Platform is developed to simplify and improve drone f
 - Reports
 - Settings
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 | Technology | Purpose |
 |---|---|
-| React.js | Frontend development |
-| JavaScript | Frontend functionality |
-| Python | Backend development |
-| FastAPI | REST API development |
-| MongoDB | Database management |
-| HTML & CSS | User interface |
-| GitHub | Source code management |
-| Render | Cloud deployment |
+| React.js | Frontend Development |
+| JavaScript | Frontend Functionality |
+| Python | Backend Development |
+| FastAPI | REST API Development |
+| MongoDB | Database Management |
+| HTML & CSS | User Interface |
+| GitHub | Version Control |
+| Render | Cloud Deployment |
 
-## 📂 Project Deliverables
+## PROJECT DELIVERABLES
 
 ### 1. Project Report
 
-[Click here to view the Project Report](./Drone_Fleet_Management_Platform_Report_SRU_Template.docx)
+[View Project Report](./Drone_Fleet_Management_Platform_Report_SRU_Template%20%281%29.docx)
 
 ### 2. Project Presentation
 
-[Click here to view the Project PPT](./Drone_Fleet_Management_Platform_Presentation_15_Slides.pptx)
+[View Project Presentation](./Drone_Fleet_Management_Platform_Presentation_15_Slides-1.pptx)
 
 ### 3. LinkedIn Project Demonstration
 
-[Click here to watch the project demonstration](PASTE_YOUR_LINKEDIN_POST_URL_HERE)
+[Watch Project Demonstration on LinkedIn](https://www.linkedin.com/posts/chinthakuntla-snehitha-40653037b_dronefleetmanagement-fullstackdevelopment-ugcPost-7529320875930677249-MTb4/)
 
 ### 4. Complete Source Code
 
-- [Frontend – React.js](./frontend)
-- [Backend – Python & FastAPI](./backend)
+- [Frontend Source Code – React.js](./frontend)
+- [Backend Source Code – Python & FastAPI](./backend)
 
-## 🏗️ Project Architecture
+## Project Architecture
 
-The platform uses a React.js frontend to interact with a Python FastAPI backend. The backend handles API requests and communicates with MongoDB to store and retrieve project data.
+The frontend is developed using React.js and JavaScript. The backend is developed using Python and FastAPI. MongoDB is used for storing and managing application data. The frontend communicates with the backend through REST APIs.
 
-## 🤖 AI-Assisted Development
+## AI-Assisted Development
 
-Generative AI tools and GitHub Copilot were used to assist during different stages of the software development lifecycle, including:
+Generative AI tools and GitHub Copilot were used to assist in different stages of the software development lifecycle, including requirement analysis, code development, debugging, testing and documentation.
 
-- Requirement analysis
-- Code generation
-- Frontend and backend development
-- Debugging and testing
-- Documentation
+## Project Outcome
 
-## 🚀 Project Outcome
-
-The project provides a centralized platform for managing drone fleet information, monitoring operations, and accessing important fleet data through a user-friendly dashboard.
+The platform provides a centralized interface for monitoring and managing drone fleet operations, accessing mission information and tracking important operational details.
 
 ---
 
-## 👩‍💻 Project Information
+## Project Information
 
 **Project Name:** Drone Fleet Management Platform
 
@@ -93,7 +74,7 @@ The project provides a centralized platform for managing drone fleet information
 
 **Project Type:** Full-Stack Web Application
 
-**Repository:** DroneFleet AI
+**Repository:** Drone Fleet Management Platform
 
 ---
 
